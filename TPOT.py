@@ -22,4 +22,4 @@ tpot = TPOTRegressor(random_state=0,verbosity=2,template='Regressor')
 
 tpot.fit(X_train, y_train)
 print(tpot.score(X_test, y_test))
-tpot.export('tpot_pipeline-2022.py')
+tpot.export('TPOT_pipeline_2022.py')
