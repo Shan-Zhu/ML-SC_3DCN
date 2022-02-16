@@ -1,0 +1,48 @@
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import train_test_split, GridSearchCV,cross_val_score,KFold,ShuffleSplit
+import sklearn.metrics as metrics
+from sklearn.metrics import r2_score
+
+# NOTE: Make sure that the outcome column is labeled 'target' in the data file
+tpot_data = pd.read_csv('D:/ML-3DCN-SC/3DCN-2021-1.csv', sep=',', dtype=np.float64)
+features = tpot_data.drop('Cap', axis=1)
+training_features, testing_features, training_target, testing_target = \
+            train_test_split(features, tpot_data['Cap'], random_state=0)
+
+exported_pipeline = GradientBoostingRegressor(alpha=0.95, learning_rate=0.1, loss="huber", max_depth=10, max_features=0.25, min_samples_leaf=1, min_samples_split=9, n_estimators=100, subsample=1.0)
+# Fix random state in exported estimator
+if hasattr(exported_pipeline, 'random_state'):
+    setattr(exported_pipeline, 'random_state', 0)
+
+exported_pipeline.fit(training_features, training_target)
+results = exported_pipeline.predict(testing_features)
+results_train = exported_pipeline.predict(training_features)
+
+cv_method = ShuffleSplit(n_splits=5, test_size=0.2, random_state=0)
+scores = cross_val_score(exported_pipeline , features, tpot_data['Cap'], cv=cv_method, scoring='r2')
+print(scores)
+
+mae_test = metrics.mean_absolute_error(testing_target, results)
+mse_test = metrics.mean_squared_error(testing_target, results)
+rmse_test = np.sqrt(mse_test) # or mse**(0.5)
+r2_test = metrics.r2_score(testing_target, results)
+
+
+mae_train = metrics.mean_absolute_error(training_target, results_train)
+mse_train  = metrics.mean_squared_error(training_target, results_train)
+rmse_train  = np.sqrt(mse_train) # or mse**(0.5)
+r2_train  = metrics.r2_score(training_target, results_train)
+
+print("Results of sklearn.metrics of test dataset:")
+print("test_MAE:",mae_test)
+print("test_MSE:", mse_test)
+print("test_RMSE:", rmse_test)
+print("test_R-Squared:", r2_test)
+
+print("Results of sklearn.metrics of train dataset:")
+print("train_MAE:",mae_train)
+print("train_MSE:", mse_train)
+print("train_RMSE:", rmse_train)
+print("train_R-Squared:", r2_train)
